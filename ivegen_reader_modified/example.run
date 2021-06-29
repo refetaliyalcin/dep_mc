@@ -1,0 +1,3 @@
+#!bin/bash
+./bin/IVEGen -k 1 -mean 2.0 -stdev 0.0 -vol_rad 10 -eps_r 1.7152 -eps_i 0.0786 -density 0.25 -N_ave 512 -n_samples 256
+
