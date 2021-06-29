@@ -1,0 +1,141 @@
+MODDIR=../../mod/
+OBJDIR=../../obj/
+
+#SCRIPT_FIND_ME_00520
+OBJECTS =  common.o constants.o error_handler.o sfunctions.o translations.o translations_extension.o io.o mie.o mie_extension.o  T_matrix.o
+
+OBJLIST1_O 	= $(addprefix $(OBJDIR),$(OBJECTS))
+
+
+.phony: debug
+
+all: check-env
+
+#SCRIPT_INTEL_TAITO1
+##GCC
+#FCFLAGS = -O3 -cpp -check noarg_temp_created  #-ffpe-trap=invalid -g # -fcheck=bounds -ffpe-trap=invalid,zero,underflow,overflow -fbacktrace -fopenmp -cpp -g 
+
+##I_REQUIRE_THESE_FLAGS_911
+#LIBS = -ldl -fPIC -L${H5ROOT}/lib/ -lhdf5_fortran -lhdf5 -Wl,--start-group $(MKLROOT)/lib/intel64/libmkl_gf_lp64.a $(MKLROOT)/lib/intel64/libmkl_core.a $(MKLROOT)/lib/intel64/libmkl_sequential.a -Wl,--end-group -lpthread -lm
+
+
+##FCFLAGS = -O3 -xHost -opt-prefetch -unroll-aggressive -no-prec-div -fp-model fast=2
+##FCFLAGS = -O3 -xHost -opt-prefetch -unroll-aggressive -no-prec-div -fp-model fast=2 -xAVX -axCORE-AVX2
+
+#MODS=-I$(MODDIR) -module $(MODDIR)
+## flags forall (e.g. look for system .mod files, required in gfortran)
+##FCFLAGS += -I/usr/include
+
+##INCLUDES = -m64 -I$(MKLROOT)/include 
+##INCLUDES = -I/usr/local/include/
+##INCLUDES = -I/usr/local/include/ -I/usr/include/hdf5/serial/
+
+
+
+
+##Required libraries: Lapack
+
+#debug: FCFLAGS += -CB -g -check all -fpe0  -debug -traceback #debug:	${OBJLIST1_O}
+#debug: ${OBJLIST1_O} 
+#SCRIPT_INTEL_TAITO2
+
+
+
+#SCRIPT_CSC_GCC1
+##GCC
+#FCFLAGS = -O3 -funroll-loops -ffast-math -cpp -march=sandybridge -mtune=haswell #-ffpe-trap=invalid -g # -fcheck=bounds -ffpe-trap=invalid,zero,underflow,overflow -fbacktrace -fopenmp -cpp -g 
+
+##I_REQUIRE_THESE_FLAGS_911
+#LIBS = -I${H5ROOT}/include/ -m64 -I$(MKLROOT)/include -ldl -fPIC -L${H5ROOT}/lib/ -lhdf5_fortran -lhdf5 -Wl,--start-group $(MKLROOT)/lib/intel64/libmkl_gf_lp64.a $(MKLROOT)/lib/intel64/libmkl_core.a $(MKLROOT)/lib/intel64/libmkl_sequential.a -Wl,--end-group -lpthread -lm
+
+##FCFLAGS = -O3 -xHost -opt-prefetch -unroll-aggressive -no-prec-div -fp-model fast=2
+##FCFLAGS = -O3 -xHost -opt-prefetch -unroll-aggressive -no-prec-div -fp-model fast=2 -xAVX -axCORE-AVX2
+
+
+## flags forall (e.g. look for system .mod files, required in gfortran)
+##FCFLAGS += -I/usr/include
+#INCLUDES = -I${H5ROOT}/include/
+##INCLUDES = -m64 -I$(MKLROOT)/include 
+##INCLUDES = -I/usr/local/include/
+##INCLUDES = -I/usr/local/include/ -I/usr/include/hdf5/serial/
+
+#MODS=-J$(MODDIR)
+
+
+
+##Required libraries: Lapack
+#LIBS += -lm -L/usr/local/lib -L/usr/lib -llapack -lblas
+
+#debug: FCFLAGS += -fcheck=bounds -ffpe-trap=invalid,zero,underflow,overflow -fbacktrace -fopenmp -cpp -g 
+#debug: ${OBJLIST1_O} 
+#SCRIPT_CSC_GCC2
+
+
+#SCRIPT_GCC1
+##GCC
+FCFLAGS = -O3 -funroll-loops -ffast-math -cpp -mtune=native  #-ffpe-trap=invalid -g # -fcheck=bounds -ffpe-trap=invalid,zero,underflow,overflow -fbacktrace -fopenmp -cpp -g 
+
+#I_REQUIRE_THESE_FLAGS_911
+LIBS = -lhdf5_fortran -lhdf5  -L/usr/local/hdf5/lib  -lm -L/usr/local/lib -L/usr/lib -llapack -lblas
+
+#FCFLAGS = -O3 -xHost -opt-prefetch -unroll-aggressive -no-prec-div -fp-model fast=2
+#FCFLAGS = -O3 -xHost -opt-prefetch -unroll-aggressive -no-prec-div -fp-model fast=2 -xAVX -axCORE-AVX2
+
+
+# flags forall (e.g. look for system .mod files, required in gfortran)
+#FCFLAGS += -I/usr/include
+INCLUDES = -I/usr/include/hdf5/serial
+#INCLUDES = -m64 -I$(MKLROOT)/include 
+#INCLUDES = -I/usr/local/include/
+#INCLUDES = -I/usr/local/include/ -I/usr/include/hdf5/serial/
+
+MODS=-J$(MODDIR)
+
+
+
+#Required libraries: Lapack
+LIBS += -lm -L/usr/local/lib -L/usr/lib -llapack -lblas
+
+debug: FCFLAGS += -fcheck=bounds -ffpe-trap=invalid,zero,underflow,overflow -fbacktrace -fopenmp -cpp -g 
+debug: ${OBJLIST1_O} 
+#SCRIPT_GCC2
+
+
+
+
+
+
+check-env:
+ifeq ($(RT_DEBUG_ENV),TRUE)
+check-env: debug
+else
+check-env: ${OBJLIST1_O}
+endif
+
+
+
+
+${NAME}: ${OBJECTS}
+	 ${FC} ${FCFLAGS} ${OBJECTS} ${LIBS} -o ${NAME}
+
+
+$(OBJDIR)%.o : %.f90
+	 ${FC} ${FCFLAGS} ${INCLUDES} $(MODS) -c $*.f90 -o $(OBJDIR)$*.o 
+
+clean:
+	 rm -f ${NAME}
+	 rm -f *.o
+	 rm -f *.mod
+	 rm -f *~
+
+veryclean:
+	 rm -f ${NAME}
+	 rm -f ${OBJECTS}	
+	 rm -f *.mod
+	 rm -f *~
+	 rm -f *.h5
+	 rm -f *~
+	 rm -f *~
+
+
+

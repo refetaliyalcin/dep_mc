@@ -1,0 +1,59 @@
+####################################################
+#Copyright (C) 2016 Timo Väisänen and University of Helsinki
+#All rights reserved.
+#The new BSD License is applied to this software, see LICENSE.txt
+#####################################################
+
+
+MODDIR=../../mod/
+OBJDIR=../../obj/
+FC?=mpifort
+
+#SCRIPT_INTEL_TAITO1
+#CFLAGS      := -O3 -finline-functions -fomit-frame-pointer -DNDEBUG -fno-strict-aliasing -std=c99 -Wmissing-prototypes -Wall
+#MODS1      := -I$(MODDIR) 
+#MODS2      := -module $(MODDIR)
+#SSEFLAGS    := -xAVX
+#SCRIPT_INTEL_TAITO2
+
+
+#SCRIPT_GCC1
+CFLAGS2      := -std=c99 
+CFLAGS      := -finline-functions -fomit-frame-pointer -DNDEBUG -fno-strict-aliasing --param max-inline-insns-single=1800 -Wmissing-prototypes -Wall  -std=c99 --param inline-unit-growth=500 --param large-function-growth=900 
+MODS1      := -J$(MODDIR)
+MODS2      := 
+SSEFLAGS    := -msse2 -DHAVE_SSE2
+#SCRIPT_GCC2
+
+
+LEN         :=  -DDSFMT_MEXP=1279
+RM			?= rm
+SRCDIR      := dsfmt
+
+#####################################################
+#RULES###############################################
+#default
+all: $(OBJDIR)dSFMT.o
+all: $(OBJDIR)dSFMT-jump.o
+all: $(OBJDIR)dSFMT_utils.o
+all: $(OBJDIR)dSFMT_interface.o
+
+#clean
+clean:
+	$(RM) -rf *.o *.mod
+
+#compile dSFMT
+$(OBJDIR)dSFMT.o: $(SRCDIR)/dSFMT.c
+	$(CC) -c $< -o $@ $(CFLAGS) $(LEN) $(SSEFLAGS) $(MODS1) 
+
+#compile dSFMT
+$(OBJDIR)dSFMT-jump.o: $(SRCDIR)/dSFMT-jump.c
+	$(CC) -c $< -o $@ $(CFLAGS) $(LEN) $(SSEFLAGS) $(MODS1) 
+
+#compile dSFMTutils
+$(OBJDIR)dSFMT_utils.o: $(SRCDIR)/dSFMT_utils.c
+	$(CC) -c $< -o $@ $(LEN) $(SSEFLAGS) $(CFLAGS2) -I$(SRCDIR) $(MODS1) 
+
+#compile dSFMT_interface
+$(OBJDIR)dSFMT_interface.o: dSFMT_interface.F90
+	$(FC) -c $< -o $@ $(LEN) $(FCFLAGS) -cpp $(MFLAGS) $(MODS1) $(MODS2) 

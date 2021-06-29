@@ -1,0 +1,324 @@
+###############################################
+#Makefile for R2T2
+#
+#Copyright (C) 2016 Timo Väisänen and University of Helsinki
+#All rights reserved.
+#The new BSD License is applied to this software, see LICENSE.txt
+#Versio 1.0###################################
+#Created: 9th. March. 2016
+
+###############################################
+#FLAGS#########################################
+#COMPILER!######################
+#SCRIPT_COMPILER_LIST
+#DO NOT MEDDLE WITH ORDER
+FC 		    := mpifort
+#FC         := mpiifort
+#FC         := gfortran
+#FC         := ifort
+CC          := gcc
+#CC         := mpicc
+#CC         := icc
+
+#FLAGS_FOR_GCC
+FCFLAGS 	?= -O3 -funroll-loops -ffast-math -cpp -mtune=native
+INCLUDES2	= $(INCLUDES) -I$(MODDIR)
+MODDIR2     =-J$(MODDIR)
+
+#FLAGS_FOR_CSC_GCC
+#FCFLAGS 	?= -O3 -funroll-loops -ffast-math -cpp -march=sandybridge -mtune=haswell
+#INCLUDES2	= $(INCLUDES) -I$(MODDIR)
+#MODDIR2     =-J$(MODDIR)
+#INC         =  -lhdf5_fortran -lhdf5  
+
+
+
+#FLAGS_FOR_INTEL
+#FCFLAGS    ?= -O3 -funroll-loops -openmp -cpp -check noarg_temp_created -heap-arrays -assume realloc-lhs 
+#INCLUDES2	= $(INCLUDES) -I$(MODDIR)
+#MODDIR2     =-module $(MODDIR) -I$(MODDIR)
+#INC           = 
+
+INCLUDES 	?= -I/usr/include
+LIBS 		?= -lhdf5_fortran -lhdf5  -L/usr/lib/x86_64-linux-gnu/hdf5/serial/  -L/usr/lib -llapack -lblas
+OBJDIR		?= obj
+MODDIR		?= mod
+SRCDIR		?= src
+DEBUGGER	?= gdb
+DEBUG		?=
+ANALYSIS	?= analysis.txt
+TMPFILE		?= gmon.out
+RMADD		?= -rf
+PROFILER	?= gprof
+PROFILERADD ?= -pg
+VERSION     ?= ALPHA
+SFMTPATH    ?= src/dsfmt
+NAME		:= cbz
+SPHDIR      =sphere
+PLNDIR      =plane
+
+
+#For portability
+SHELL = /bin/sh
+
+.SUFFIXES:
+.SUFFIXES: .o .mod .f90 .f .f95 .f03 .f08
+
+.SECONDEXPANSION:
+
+ifdef DEBUG
+FCFLAGS=$(DEBUG)
+FCFLAGS+=-fcheck=bounds -ffpe-trap=invalid,overflow,zero -fbacktrace -fopenmp -cpp -g 
+endif
+
+ifdef PROFILE
+FCFLAGS=$(PROFILE)
+FCFLAGS+=-pg -funroll-loops -ffast-math -fopenmp -cpp -std=f2008
+endif
+
+###############################################
+#SOURCES COMMON#######################################
+#Common source list1
+SRCLISTC1 = constants.f90 definitions.f90  error_handler.f90 absorption_module.f90 hashtable.f90 inputparser.f90 math_routines.f90 input_reader.f90 misc.f90 grid_holder.f90 
+#Common source list2
+SRCLISTC2 = algorithm.f90 preparedata.f90 output_writer.f90  main.f90
+
+
+###############################################
+#SCATTERER DEPENDENT#######################################
+SRCLISTR2T21 = scatterer_r2t2.f90
+OBJR2T2 = #REPLACE_ME_00520
+R2T2PATH =  stmm
+
+SRCLISTRTCB = scatterer_rtcb.f90
+OBJRTCB = #REPLACE_ME_00530
+RTCBPATH = rtcb
+
+
+###############################################
+#GEOM DEPENDENT#######################################
+#Sphere geometry
+SRCLISTSPH = geom_sphere.f90
+
+#Plane/slab geometry
+SRCLISTPLN = geom_plane.f90
+
+
+
+#######################################
+#GEOM DEPENDENT#######################################
+#Source file for Mersenne Twister
+DSFMTLIST = dSFMT_interface.o dSFMT_utils.o dSFMT-jump.o dSFMT.o
+
+
+#RNGs
+STDRNG=stdrng.f90
+SFMT=sfmtrng.f90
+
+
+#MPI tools
+WITHMPI=$(OBJDIR)/mpi_tools.o
+WITHOUTMPI=$(OBJDIR)/mpi_tools2.o
+
+SRCDIRSPH=$(SRCDIR)/$(SPHDIR)
+SRCDIRPLN=$(SRCDIR)/$(PLNDIR)
+
+COEFF=normcoeff.o
+COEFFHM=normcoeffhm.o
+COEFFS=normcoeff_s.o
+
+#Normalization coefficients
+NORMCOEFF		= $(OBJDIR)/$(COEFF)
+NORMCOEFFHM		= $(OBJDIR)/$(COEFFHM)
+NORMCOEFFS		= $(OBJDIR)/$(COEFFS)
+
+
+FILE=buildInfo.txt
+LASTBUILD=`cat $(FILE)`
+AAA=$(shell cat buildInfo.txt)
+
+###############################################
+##OBJ FILES###################################
+
+#Create list of objects
+OBJLISTC1 	= $(SRCLISTC1:.f90=.o)
+OBJLISTC2 	= $(SRCLISTC2:.f90=.o)
+OBJLISTSPH 	= $(SRCLISTSPH:.f90=.o)
+OBJLISTPLN 	= $(SRCLISTPLN:.f90=.o)
+OBJLISTR2T21 = $(SRCLISTR2T21:.f90=.o)
+OBJLISTRTCB = $(SRCLISTRTCB:.f90=.o)
+
+
+OBJLIST1_O 	= $(addprefix $(OBJDIR)/,$(OBJLISTC1))
+OBJLIST2_O 	= $(addprefix $(OBJDIR)/,$(OBJLISTC2))
+OBJLISTSFMT = $(addprefix $(OBJDIR)/,$(DSFMTLIST))
+OBJLISTSPH_O = $(addprefix $(OBJDIR)/,$(OBJLISTSPH))
+OBJLISTPLN_O = $(addprefix $(OBJDIR)/,$(OBJLISTPLN))
+OBJLISTR2T21_O = $(addprefix $(OBJDIR)/,$(OBJLISTR2T21))
+OBJLISTR2T2_O = $(addprefix $(OBJDIR)/,$(OBJR2T2))
+OBJLISTRTCB_O = $(addprefix $(OBJDIR)/,$(OBJLISTRTCB))
+OBJLISTRTCB2_O = $(addprefix $(OBJDIR)/,$(OBJRTCB))
+
+
+
+#Default PRNG is Mersenne Twister
+RNG=$(OBJDIR)/sfmtrng.o
+RNGADD:=$(OBJLISTSFMT)
+#RNG=$(OBJDIR)/stdrng.o
+#RNGADD=
+
+###############################################
+#RULES#########################################
+.phony: all debug profile createDirs hm rnghelp clean
+
+all: createDirs
+all: sphereR2T2
+
+#create object and mod folders###############################
+createDirs:
+	@mkdir -p $(OBJDIR)
+	@mkdir -p $(MODDIR)
+
+#R2T2###########################################
+R2T2: $(RNG)  $(OBJLIST1_O) $(WITHMPI)  $(OBJLISTR2T21_O) $(OBJLISTSPH_O) $(OBJLISTR2T2_O) $(OBJLIST2_O)
+	make -C $(SRCDIR)/$(R2T2PATH) FC=$(FC) RT_DEBUG_ENV=$(RT_DEBUG_ENV)
+	$(FC) $(RNGADD) $^ $(FCFLAGS)  $(MDEFS) -o $(NAME) $(LIBS)
+	@echo "Name " $(NAME) " sphere geometry"
+
+
+#compile sources###############################
+$(OBJLIST1_O): %.o : $$(join $(SRCDIR)/,$$(subst obj/,,%).f90)
+	make -C $(SRCDIR)/$(R2T2PATH) FC=$(FC) RT_DEBUG_ENV=$(RT_DEBUG_ENV)
+	$(FC)  $(MODDIR2) $(FCFLAGS) $(MDEFS) -o $@ $< -c 
+
+$(OBJLIST2_O): %.o : $$(join $(SRCDIR)/,$$(subst obj/,,%).f90)
+	$(FC) $(MODDIR2) $(FCFLAGS) $(MDEFS) -o $@ $< -c 
+
+$(OBJLISTSPH_O): %.o : $$(join $(SRCDIR)/,$$(subst obj/,,%).f90)
+	$(FC)  $(MODDIR2) $(FCFLAGS) $(MDEFS) -o $@ $< -c 
+
+$(OBJLISTPLN_O): %.o : $$(join $(SRCDIR)/,$$(subst obj/,,%).f90)
+	$(FC)  $(MODDIR2) $(FCFLAGS) $(MDEFS) -o $@ $< -c 
+
+
+##MPI tools
+$(OBJDIR)/mpi_tools2.o: $(SRCDIR)/mpi_tools2.f90
+	$(FC) $(MODDIR2) $(FCFLAGS) $(MDEFS) -o $@ $< -c 
+
+$(OBJDIR)/mpi_tools.o: $(SRCDIR)/mpi_tools.f90
+	$(FC)  $(MODDIR2) $(FCFLAGS) $(MDEFS) -o $@ $< -c 
+
+##Some special rules###########################
+#dSFMT ########################################
+$(OBJDIR)/sfmtrng.o: $(SRCDIR)/sfmtrng.f90
+	make -C $(SFMTPATH) FC=$(FC) CC=$(CC)
+	$(FC) $(MODDIR2) $(FCFLAGS) $(MDEFS) -o $@ $< -c 	
+
+$(OBJDIR)/scatterer_r2t2.o: $(SRCDIR)/scatterer_r2t2.f90
+	$(FC) $(MODDIR2) $(FCFLAGS) $(MDEFS) -o $@ $< -c 
+
+$(OBJDIR)/scatterer_rtcb.o: $(SRCDIR)/scatterer_rtcb.f90
+	make -C $(SRCDIR)/$(RTCBPATH) FC=$(FC) RT_DEBUG_ENV=$(RT_DEBUG_ENV)
+	$(FC) $(MODDIR2) $(FCFLAGS) $(MDEFS) -o $@ $< -c
+
+$(OBJDIR)/stdrng.o: $(SRCDIR)/stdrng.f90
+	$(FC) $(MODDIR2) $(FCFLAGS) $(MDEFS) -o $@ $< -c
+
+$(OBJDIR)/$(COEFF): $(SRCDIRPLN)/normcoeff.f90
+	$(FC)  $(MODDIR2) $(FCFLAGS) $(MDEFS) -o $@ $< -c
+
+$(OBJDIR)/$(COEFFHM): $(SRCDIRPLN)/normcoeffhm.f90
+	$(FC)  $(MODDIR2) $(FCFLAGS) $(MDEFS) -o $@  $< -c
+
+$(OBJDIR)/$(COEFFS): $(SRCDIRSPH)/normcoeff_s.f90
+	$(FC) $< -c $(MODDIR2) $(FCFLAGS) $(MDEFS) -o $@
+
+
+#DEBUGGING_FLAGS_GCC
+debug: FCFLAGS+= -fcheck=bounds -ffpe-trap=invalid,overflow,zero -fbacktrace -fopenmp -cpp -g 
+debug: FCFLAGS+= -D DEBUG 
+debug: RT_DEBUG_ENV = TRUE
+debug: all
+
+#DEBUGGING_FLAGS_IFORT
+#debug: FCFLAGS+= -CB -g -check all -fpe0  -debug -traceback
+#debug: FCFLAGS+= -D DEBUG
+#debug: RT_DEBUG_ENV = TRUE
+#debug: all
+
+sphereR2T2: NAME        := R2T2
+sphereR2T2: check
+sphereR2T2: FCFLAGS += -D R2T2
+sphereR2T2: R2T2
+
+
+#############################################################
+info:
+	@echo "R2T2 version" $(VERSION)
+	@echo "make                    make the R2T2"
+	@echo "make clean              remove all .o and .mod files"
+	@echo "make veryclean          clear everything unnecessary (do before submitting to git)"
+	@echo "make R2T2               make the R2T2"
+	@echo "make debug              make debug build"
+	@echo "make force_make         use this if there are changes in src/stmm"
+	@echo "make fdebug             make debug build, use this if there are changes in src/stmm"
+	@echo "make reminder           remind on how to debug mpi builds"
+
+
+check: 
+	@if [ "$(NAME)" != "$(LASTBUILD)" ]; then make clean; echo $(NAME) > buildInfo.txt; fi
+	@echo "Setting Compiler flags"    
+ifeq ($(FC),ifort)
+	@echo "RT-Engine non-mpi version is not implemented yet, Use Fortran MPI wrappers"
+else ifeq ($(FC),gfortran)
+	@echo "RT-Engine non-mpi version is not implemented yet, Use Fortran MPI wrappers"
+else ifeq ($(FC),mpifort)
+	@echo "mpifort is used, proceed..."
+else ifeq ($(FC),mpiifort)
+	@echo "mpiifort is used, proceed..."
+else
+	@echo "Compiler not supported! You must have Intel's Fortran Compiler or GCC"
+	exit
+endif
+	@echo "Checking that the Fortran compiler is available."
+	@echo "In case of error check that correct modules are loaded, correct flags with ./configuration is used or tweak Makefile yourself"
+	@type $(FC) >/dev/null 2>&1 
+	@echo "Fortran compiler: " "$(FC)" " was found"
+	@echo "Checking that the C compiler is available."
+	@type $(CC) >/dev/null 2>&1 
+	@echo "C compiler: " "$(CC)" " was found"
+
+
+
+#############################################################
+#clean also backups produced by the operating system################################
+veryclean: clean
+veryclean:
+	@find . -type f -name '*~' -exec rm {} +
+	@find . -type f -name '*.pyc' -exec rm {} +
+	@$(RM) Makefile R2T2 buildInfo.txt
+	@$(RM) -r $(OBJDIR)/ $(MODDIR)
+	@make clean -C $(SFMTPATH)
+	@make clean -C $(SRCDIR)/$(R2T2PATH)
+
+
+#############################################################
+#delete all objects and mod files################################
+clean:
+	@$(RM) $(RMADD) $(OBJDIR)/*.o $(MODDIR)/*.mod
+	@make clean -C $(SFMTPATH)
+	@make clean -C $(SRCDIR)/$(R2T2PATH)
+
+
+#############################################################
+#delete all objects and mod files################################
+clean0:
+	@$(RM) $(RMADD) $(OBJDIR)/*.o $(MODDIR)/*.mod
+	@make clean -C $(SFMTPATH)
+	@make clean -C $(SRCDIR)/$(R2T2PATH)
+
+reminder:
+	@echo "mpirun -n <NP> xterm -hold -e gdb -ex run --args ./program [arg1] [arg2] [...]"
+
+
+
