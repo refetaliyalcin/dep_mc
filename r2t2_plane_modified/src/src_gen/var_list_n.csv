@@ -1,0 +1,56 @@
+REAL8,1,wavelength,wavel,6.283185307179586_rk,TRUE,TRUE,!wavelength,1,TRUE
+REAL8,1,mean_free_path,ell,112.028_rk,TRUE,TRUE,!incoherent mean free path,2,TRUE
+REAL8,1,cutoff_intensity,Fstop,0.0001_rk,TRUE,TRUE,!cutoff intensity,3,TRUE
+REAL8,1,incident_theta,the0,180.0_rk,TRUE,TRUE,!incident theta angle,4,TRUE
+REAL8,1,incident_phi,phi0,0.0_rk,TRUE,TRUE,!incident phi angle,5,TRUE
+REAL8,1,phi_output,phiout,0.0_rk,TRUE,TRUE,!phi output angle,6,TRUE
+REAL8,1,tau_threshold,tau_c,50.0_rk,TRUE,TRUE,!threshold for optical depth,7,TRUE
+REAL8,1,medium_thickness_or_radius,hr,86.7481_rk,TRUE,TRUE,!thickness/radius,8,TRUE
+REAL8,1,volume_element_radius,volrad,7.5_rk,TRUE,TRUE,!volume element radius,8,TRUE
+REAL8,1,default_run_time,runtime,0.1_rk,TRUE,TRUE,!default run time in hours,9,TRUE
+INTEGER,1,seed,seed,0,TRUE,TRUE,!seed,10,TRUE
+INTEGER,1,number_of_rays,ntot,1000,TRUE,TRUE,!number of rays,11,TRUE
+INTEGER,1,max_sca_procs,nsca,100,TRUE,TRUE,!max num of scatt. processes,12,TRUE
+INTEGER,1,rotations_every_n_path,nrot,1,TRUE,TRUE,!asd,13,TRUE
+LOGICAL,1,additional_info,addInfo,.true.,TRUE,TRUE,!add additional info to output,14,TRUE
+LOGICAL,1,estimateTime,estimateTime,.false.,TRUE,TRUE,!estimate time,15,TRUE
+LOGICAL,1,force_to_stay_in,forced_vm,.false.,TRUE,TRUE,!force the volume element to stay inside the medium,16,TRUE
+LOGICAL,1,surface_attenuation,surface_att,.false.,TRUE,TRUE,!attenuation starts from the surface,17,TRUE
+LOGICAL,1,overlap_probability,overlap_prob,.true.,TRUE,TRUE,!if ,18,TRUE
+LOGICAL,1,override_albedo_to_1,albedo_override,.false.,TRUE,TRUE,!override albedo to be 1,19,TRUE
+INTEGER,1,cb_theta_angles,ntheb,0.0_rk,TRUE,FALSE,!number of theta angles(cb-solution),20,TRUE
+INTEGER,1,cb_phi_angles,nphib,8,TRUE,TRUE,!number of phi angles(cb-solution),21,TRUE
+INTEGER,1,rt_the_angles,nthe,64,TRUE,TRUE,!number of theta angles(rt-solution),22,TRUE
+INTEGER,1,rt_phi_angles,nphi,48,TRUE,TRUE,!number of theta angles(rt-solution),23,TRUE
+REAL8,0,AAAAAAAA,CTHEIF,0.0_rk,TRUE,FALSE,!cos(theta),24,FALSE
+REAL8,0,AAAAAAAA,STHEIF,0.0_rk,TRUE,FALSE,!sin(theta),25,FALSE
+REAL8,0,AAAAAAAA,INORM,0.0_rk,TRUE,FALSE,!gauss-legendre weighting values used in integration,26,FALSE
+REAL8,0,AAAAAAAA,STHEI,0.0_rk,TRUE,FALSE,!cos(theta),27,FALSE
+REAL8,0,AAAAAAAA,CTHEI,0.0_rk,TRUE,FALSE,!sin(theta),28,FALSE
+REAL8,0,AAAAAAAA,CPHII,0.0_rk,TRUE,FALSE,!cos(phi),29,FALSE
+REAL8,0,AAAAAAAA,SPHII,0.0_rk,TRUE,FALSE,!sin(phi),30,FALSE
+REAL8,0,AAAAAAAA,THEBF,0.0_rk,TRUE,FALSE,!theta,31,FALSE
+REAL8,0,AAAAAAAA,CTHEBF,0.0_rk,TRUE,FALSE,!cos(theta),32,FALSE
+REAL8,0,AAAAAAAA,STHEBF,0.0_rk,TRUE,FALSE,!sin(theta),33,FALSE
+REAL8,0,AAAAAAAA,STHEB,0.0_rk,TRUE,FALSE,!cos(theta),34,FALSE
+REAL8,0,AAAAAAAA,CTHEB,0.0_rk,TRUE,FALSE,!sin(theta),35,FALSE
+REAL8,0,AAAAAAAA,CPHIB,0.0_rk,TRUE,FALSE,!cos(phi),36,FALSE
+REAL8,0,AAAAAAAA,SPHIB,0.0_rk,TRUE,FALSE,!sin(phi),37,FALSE
+REAL8,0,AAAAAAAA,PHIB,0.0_rk,TRUE,FALSE,!phi,38,FALSE
+REAL8,0,AAAAAAAA,theGrid_cb,0.0_rk,TRUE,FALSE,!theta grid points,39,FALSE
+REAL8,1,distance_to_far_field,ffboundary,1000000.0_rk,TRUE,TRUE,!distance to far field,40,TRUE
+LOGICAL,1,pol_state_Q_plus,polQp,.true.,TRUE,TRUE,!compute RT with polarization state Q+,41,TRUE
+LOGICAL,1,pol_state_Q_minus,polQm,.true.,TRUE,TRUE,!compute RT with polarization state Q-,42,TRUE
+LOGICAL,1,pol_state_U_plus,polUp,.true.,TRUE,TRUE,!compute RT with polarization state U+,43,TRUE
+LOGICAL,1,pol_state_U_minus,polUm,.true.,TRUE,TRUE,!compute RT with polarization state U-,44,TRUE
+LOGICAL,1,pol_state_V_plus,polVp,.true.,TRUE,TRUE,!compute RT with polarization state V+,45,TRUE
+LOGICAL,1,pol_state_V_minus,polVm,.true.,TRUE,TRUE,!compute RT with polarization state V-,46,TRUE
+LOGICAL,1,compute_cb,cb_on,.true.,TRUE,TRUE,!Enable/Disable coherent backscattering,47,TRUE
+INTEGER,0,AAAAAAA,run_table,0,FALSE,FALSE,!list of polarization states,48,FALSE
+CHARACTER,64,output_details,output_details,x_details.out,FALSE,TRUE,!Print input/output parameters,49,TRUE
+CHARACTER,64,output_rt,output_rt,x_output_rt.out,FALSE,TRUE,!RT-solution output filename,50,TRUE
+CHARACTER,64,output_cb,output_cb,x_output_cb.out,FALSE,TRUE,!CB-solution output filename,51,TRUE
+CHARACTER,64,own_text_to_output,outputExt,dear diary vol 1,FALSE,TRUE,!extra information to output,52,TRUE
+CHARACTER,64,read_theta_grid_points_cb,cb_the_points,defaults/cbTheGrid.dat,FALSE,TRUE,!read theta grid points from this file,53,TRUE
+CHARACTER,64,tmatrix_location,t_matrix_location,defaults/T_multi.h5,FALSE,TRUE,!The file which contains incoherent T-matrice,54,TRUE
+EXAMPLE,AMOUNT,asd,asd,asd,asd,asd,asd,55,TRUE
