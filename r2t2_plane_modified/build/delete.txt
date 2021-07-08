@@ -1,0 +1,20 @@
+qrsh -l rh7,h_rt=23:59:00,h_data=2G -pe shared 26
+
+module unload intel/2020.4
+
+git clone https://github.com/refetaliyalcin/dep_mc.git
+
+module load cmake/3.19.5
+
+module load gcc/10.2.0
+
+module load openmpi/4.1.1 
+
+module load zlib/1.2.11
+
+openmpi/4.1.1 
+hdf5/1.12.0_intel2019.2 
+hdf5/1.12.0_gcc4.8.5-zlib 
+
+gcc/10.2.0
+gcc/8.3.0
